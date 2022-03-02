@@ -4,20 +4,19 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
-import time
-import sys
+from pathlib import Path
+
+import numpy as np
 import torch
 import transformers
-import numpy as np
-from pathlib import Path
-from torch.utils.data import DataLoader, RandomSampler, DistributedSampler, SequentialSampler
-from src.options import Options
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
+import src.data
+import src.evaluation
+import src.model
 import src.slurm
 import src.util
-import src.evaluation
-import src.data
-import src.model
+from src.options import Options
 
 
 def train(model, optimizer, scheduler, step, train_dataset, eval_dataset, opt, collator, best_dev_em, checkpoint_path):

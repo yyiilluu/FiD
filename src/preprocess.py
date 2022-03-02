@@ -20,13 +20,13 @@ def select_examples_TQA(data, index, passages, passages_index):
         target = ex['Answer']['Value']
 
         ctxs = [
-                {                          
-                    'id': idx,
-                    'title': passages[idx][1],
-                    'text': passages[idx][0],
-                }
-                for idx in passages_index[ex['QuestionId']]
-            ]
+            {
+                'id': idx,
+                'title': passages[idx][1],
+                'text': passages[idx][0],
+            }
+            for idx in passages_index[ex['QuestionId']]
+        ]
 
         if target.isupper():
             target = target.title()
@@ -44,13 +44,13 @@ def select_examples_NQ(data, index, passages, passages_index):
     selected_data = []
     for i, k in enumerate(index):
         ctxs = [
-                {
-                    'id': idx,
-                    'title': passages[idx][1],
-                    'text': passages[idx][0],
-                }
-                for idx in passages_index[str(i)]
-            ]
+            {
+                'id': idx,
+                'title': passages[idx][1],
+                'text': passages[idx][0],
+            }
+            for idx in passages_index[str(i)]
+        ]
         dico = {
             'question': data[k]['question'],
             'answers': data[k]['answer'],
@@ -82,7 +82,7 @@ if __name__ == "__main__":
         for k, example in enumerate(fin):
             example = json.loads(example)
             originaldev.append(example)
-    
+
     with open(dir_path/'NQ-open.train.jsonl') as fin:
         for k, example in enumerate(fin):
             example = json.loads(example)
@@ -102,32 +102,32 @@ if __name__ == "__main__":
     with open(NQ_save_path/'test.json', 'w') as fout:
         json.dump(NQ_test, fout, indent=4)
 
-    #load Trivia question idx
-    TQA_idx, TQA_passages = {}, {}
-    for split in ['train', 'dev', 'test']:
-        with open(dir_path/('TQA.' + split + '.idx.json'), 'r') as fin:
-            TQA_idx[split] = json.load(fin)
-        with open(dir_path/'tqa_passages' /  (split + '.json'), 'r') as fin:
-            TQA_passages[split] = json.load(fin)
+    # #load Trivia question idx
+    # TQA_idx, TQA_passages = {}, {}
+    # for split in ['train', 'dev', 'test']:
+    #     with open(dir_path/('TQA.' + split + '.idx.json'), 'r') as fin:
+    #         TQA_idx[split] = json.load(fin)
+    #     with open(dir_path/'tqa_passages' /  (split + '.json'), 'r') as fin:
+    #         TQA_passages[split] = json.load(fin)
 
 
-    originaltrain, originaldev = [], []
-    with open(dir_path/'triviaqa-unfiltered'/'unfiltered-web-train.json') as fin:
-        originaltrain = json.load(fin)['Data']
-    
-    with open(dir_path/'triviaqa-unfiltered'/'unfiltered-web-dev.json') as fin:
-        originaldev = json.load(fin)['Data']
+    # originaltrain, originaldev = [], []
+    # with open(dir_path/'triviaqa-unfiltered'/'unfiltered-web-train.json') as fin:
+    #     originaltrain = json.load(fin)['Data']
 
-    TQA_train = select_examples_TQA(originaltrain, TQA_idx['train'], passages, TQA_passages['train'])
-    TQA_dev = select_examples_TQA(originaltrain, TQA_idx['dev'], passages, TQA_passages['dev'])
-    TQA_test = select_examples_TQA(originaldev, TQA_idx['test'], passages, TQA_passages['test'])
-   
-    TQA_save_path = save_dir / 'TQA'
-    TQA_save_path.mkdir(parents=True, exist_ok=True)
+    # with open(dir_path/'triviaqa-unfiltered'/'unfiltered-web-dev.json') as fin:
+    #     originaldev = json.load(fin)['Data']
 
-    with open(TQA_save_path/'train.json', 'w') as fout:
-        json.dump(TQA_train, fout, indent=4)
-    with open(TQA_save_path/'dev.json', 'w') as fout:
-        json.dump(TQA_dev, fout, indent=4)
-    with open(TQA_save_path/'test.json', 'w') as fout:
-        json.dump(TQA_test, fout, indent=4)
+    # TQA_train = select_examples_TQA(originaltrain, TQA_idx['train'], passages, TQA_passages['train'])
+    # TQA_dev = select_examples_TQA(originaltrain, TQA_idx['dev'], passages, TQA_passages['dev'])
+    # TQA_test = select_examples_TQA(originaldev, TQA_idx['test'], passages, TQA_passages['test'])
+
+    # TQA_save_path = save_dir / 'TQA'
+    # TQA_save_path.mkdir(parents=True, exist_ok=True)
+
+    # with open(TQA_save_path/'train.json', 'w') as fout:
+    #     json.dump(TQA_train, fout, indent=4)
+    # with open(TQA_save_path/'dev.json', 'w') as fout:
+    #     json.dump(TQA_dev, fout, indent=4)
+    # with open(TQA_save_path/'test.json', 'w') as fout:
+    #     json.dump(TQA_test, fout, indent=4)

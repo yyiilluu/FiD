@@ -78,6 +78,10 @@ def evaluate(model, dataset, dataloader, tokenizer, opt):
     return score, total
 
 
+def inference(text, passages, opts):
+    tokenizer = transformers.T5Tokenizer.from_pretrained('t5-base', return_dict=False)
+
+
 if __name__ == "__main__":
     options = Options()
     options.add_reader_options()
