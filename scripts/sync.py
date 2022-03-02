@@ -10,7 +10,7 @@ from typing import Dict
 def get_remote_dir(username) -> str:
     """Returns the copy destination for the specified cluster.
     """
-    return f"/home/{username}/mlds"
+    return f"/home/{username}/FiD"
 
 
 def get_upload_command(command_args: Dict[str, str]) -> str:
