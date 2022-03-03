@@ -19,6 +19,7 @@ class Options():
     def add_optim_options(self):
         self.parser.add_argument('--warmup_steps', type=int, default=1000)
         self.parser.add_argument('--total_steps', type=int, default=1000)
+        self.parser.add_argument('--epochs', type=int, default=0)
         self.parser.add_argument('--scheduler_steps', type=int, default=None, 
                         help='total number of step for the scheduler, if None then scheduler_total_step = total_step')
         self.parser.add_argument('--accumulation_steps', type=int, default=1)
