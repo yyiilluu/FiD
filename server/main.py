@@ -1,16 +1,31 @@
 import uuid
 from argparse import Namespace
 from typing import List, Dict
+from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import FastAPI
 import src.model
 import src.slurm
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from inference import inference
 from search import search
 
-app = FastAPI()
+app = FastAPI(docs_url="/another_docs")
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 opt = Namespace(answer_maxlength=-1,
                 checkpoint_dir='../checkpoint',
@@ -30,7 +45,7 @@ opt = Namespace(answer_maxlength=-1,
                 text_maxlength=200,
                 train_data='none',
                 use_checkpoint=False,
-                write_crossattention_scores=False,
+                write_crossattention_scores=True,
                 write_results=False)
 
 src.slurm.init_distributed_mode(opt)
@@ -42,16 +57,17 @@ model = model_class.from_pretrained(opt.model_path)
 model = model.to(opt.device)
 
 
-class Request(BaseModel):
+class RequestBody(BaseModel):
     ticket_subject: str
     ticket_body: str
     username: str
     is_test: bool
 
 
-class Response(BaseModel):
+class ResponseBody(BaseModel):
     ticket_body: str
     context: List[Dict[str, str]]
+    confidence_score: float
 
 
 def construct_example(question, ctxs):
@@ -138,16 +154,17 @@ dummy_ctxs = [
 ]
 
 @app.post("/predict/")
-async def predict(request: Request):
+async def predict(request: RequestBody):
     if request.is_test:
-        response = Response(ticket_body=request.ticket_body, context=dummy_ctxs)
+        response = ResponseBody(ticket_body=request.ticket_body, context=dummy_ctxs,
+                                 confidence_score=0.1)
     else:
         ctxs = search(ticket_subject=request.ticket_subject, ticket_body=request.ticket_body)
         question = f"{request.username} </s> {request.ticket_subject} {request.ticket_body}"
 
         input_example = construct_example(question, ctxs)
-        inferred_resp = inference(input_example, opt, model=model)
+        inferred_resp, scores = inference(input_example, opt, model=model)
 
-        response = Response(ticket_body=inferred_resp, context=ctxs)
+        response = ResponseBody(ticket_body=inferred_resp[0], context=ctxs, confidence_score=scores[0])
 
     return response

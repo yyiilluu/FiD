@@ -32,6 +32,7 @@ def evaluate(model, dataloader, tokenizer, opt):
         fw = open(write_path / ('%d.txt' % opt.global_rank), 'a')
 
     answers = []
+    scores = []
     with torch.no_grad():
         for i, batch in enumerate(dataloader):
             (idx, _, _, context_ids, context_mask) = batch
@@ -47,37 +48,13 @@ def evaluate(model, dataloader, tokenizer, opt):
 
             if opt.write_crossattention_scores:
                 crossattention_scores = model.get_crossattention_scores(context_mask.cuda())
-
+                scores.append(crossattention_scores)
             for k, o in enumerate(outputs):
                 ans = tokenizer.decode(o, skip_special_tokens=True)
                 answers.append(ans)
-                # example = dataset.data[idx[k]]
-                # if 'answers' in example:
-                #     score = src.evaluation.ems(ans, example['answers'])
-                #     exactmatch.append(score)
-                #
-                # if opt.write_results:
-                #     fw.write(str(example['id']) + "\t" + ans + '\n')
-                # if opt.write_crossattention_scores:
-                #     for j in range(context_ids.size(1)):
-                #         example['ctxs'][j]['score'] = crossattention_scores[k, j].item()
-
                 total += 1
-    #         if (i + 1) % opt.eval_print_freq == 0:
-    #             log = f'Process rank:{opt.global_rank}, {i + 1} / {len(dataloader)}'
-    #             if len(exactmatch) == 0:
-    #                 log += '| no answer to compute scores'
-    #             else:
-    #                 log += f' | average = {np.mean(exactmatch):.3f}'
-    #             logger.warning(log)
-    #
-    # logger.warning(
-    #     f'Process rank:{opt.global_rank}, total {total} | average = {np.mean(exactmatch):.3f}')
-    # if opt.is_distributed:
-    #     torch.distributed.barrier()
-    # score, total = src.util.weighted_average(np.mean(exactmatch), total, opt)
 
-    return answers, total
+    return answers, total, scores
 
 
 def inference(examples, opt, model=None):
@@ -103,9 +80,10 @@ def inference(examples, opt, model=None):
         model = model_class.from_pretrained(opt.model_path)
         model = model.to(opt.device)
 
-    answers, total = evaluate(model, eval_dataloader, tokenizer, opt)
-    print(answers)
-    return answers
+    answers, total, scores = evaluate(model, eval_dataloader, tokenizer, opt)
+    print(f"Generated answer: {answers}")
+    print(f"Score: {scores}")
+    return answers, scores
 
 
 if __name__ == "__main__":
