@@ -80,7 +80,7 @@ def evaluate(model, dataloader, tokenizer, opt):
     return answers, total
 
 
-def inference(examples, opt):
+def inference(examples, opt, model=None):
     tokenizer = transformers.T5Tokenizer.from_pretrained('t5-base', return_dict=False)
     collator_function = src.data.Collator(opt.text_maxlength, tokenizer)
 
@@ -98,9 +98,10 @@ def inference(examples, opt):
         collate_fn=collator_function
     )
 
-    model_class = src.model.FiDT5
-    model = model_class.from_pretrained(opt.model_path)
-    model = model.to(opt.device)
+    if not model:
+        model_class = src.model.FiDT5
+        model = model_class.from_pretrained(opt.model_path)
+        model = model.to(opt.device)
 
     answers, total = evaluate(model, eval_dataloader, tokenizer, opt)
     print(answers)

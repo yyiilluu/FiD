@@ -20,6 +20,13 @@ Entry example:
           ]
 }
 ```
+## Env
+```shell
+/home/yilu/FiD
+source venv/bin/activate
+```
+and run the command 
+
 ## training
 ```shell
 python train_reader.py \
