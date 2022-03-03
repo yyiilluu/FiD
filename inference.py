@@ -45,11 +45,13 @@ def evaluate(model, dataloader, tokenizer, opt):
                 attention_mask=context_mask.cuda(),
                 max_length=100,
             )
-
+            raw_scores = torch.concat(outputs.scores)
+            final_score = torch.mean(torch.max(raw_scores, dim=1).values)
+            scores.append(final_score.cpu().detach().item())
             if opt.write_crossattention_scores:
                 crossattention_scores = model.get_crossattention_scores(context_mask.cuda())
-                scores.append(crossattention_scores)
-            for k, o in enumerate(outputs):
+
+            for k, o in enumerate(outputs.sequences):
                 ans = tokenizer.decode(o, skip_special_tokens=True)
                 answers.append(ans)
                 total += 1
@@ -80,7 +82,7 @@ def inference(examples, opt, model=None):
         model = model_class.from_pretrained(opt.model_path)
         model = model.to(opt.device)
 
-    answers, total, scores = evaluate(model, eval_dataloader, tokenizer, opt)
+    answers, _, scores = evaluate(model, eval_dataloader, tokenizer, opt)
     print(f"Generated answer: {answers}")
     print(f"Score: {scores}")
     return answers, scores
@@ -170,8 +172,8 @@ if __name__ == "__main__":
                 {
                     "title": "Set up Gusto Time Tracking",
                     "text": "Gusto Time Tracking is now enabled. Learn how to review, edit and approve hours before syncing them to payroll . If you have employees with multiple pay rates, review this article to understand how their hours will translate to the run payroll flow. Important : At this time, approving hours is purely a visual-aid for admins to identify hours that are approved by a manager. Unapproved hours will still sync to payroll and it is up to an admin to overwrite/correct hours that are synced.  ",
-                    "id": "71a378e6-9dd3-461e-b7d2-bca887d50dbe","score": 1,
-
+                    "id": "71a378e6-9dd3-461e-b7d2-bca887d50dbe",
+                    "score": 1,
                 },
                 {
                     "title": "Track time by project to see workforce costs",

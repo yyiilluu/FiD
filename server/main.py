@@ -1,15 +1,13 @@
 import uuid
 from argparse import Namespace
 from typing import List, Dict
-from fastapi.middleware.cors import CORSMiddleware
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
 import src.model
 import src.slurm
-from pydantic import BaseModel
-from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
-
 from inference import inference
 from search import search
 
@@ -45,7 +43,7 @@ opt = Namespace(answer_maxlength=-1,
                 text_maxlength=200,
                 train_data='none',
                 use_checkpoint=False,
-                write_crossattention_scores=True,
+                write_crossattention_scores=False,
                 write_results=False)
 
 src.slurm.init_distributed_mode(opt)

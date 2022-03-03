@@ -51,7 +51,9 @@ class FiDT5(transformers.T5ForConditionalGeneration):
         return super().generate(
             input_ids=input_ids.view(input_ids.size(0), -1),
             attention_mask=attention_mask.view(attention_mask.size(0), -1),
-            max_length=max_length
+            max_length=max_length,
+            return_dict_in_generate=True,
+            output_scores=True
         )
 
     def wrap_encoder(self, use_checkpoint=False):
@@ -134,6 +136,7 @@ class EncoderWrapper(torch.nn.Module):
         super().__init__()
 
         self.encoder = encoder
+        self.main_input_name = self.encoder.main_input_name
         apply_checkpoint_wrapper(self.encoder, use_checkpoint)
 
     def forward(self, input_ids=None, attention_mask=None, **kwargs,):
@@ -202,6 +205,7 @@ def cross_attention_forward(
         query_length=None,
         use_cache=False,
         output_attentions=False,
+        **kwargs,
     ):
     """
     This only works for computing cross attention over the input
