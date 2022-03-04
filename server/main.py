@@ -9,7 +9,8 @@ from pydantic import BaseModel
 import src.model
 import src.slurm
 from inference import inference
-from search import search
+from search import search_es, format_ticket_and_kas_into_ctxs
+from server.response_trimer import trim_response
 
 app = FastAPI(docs_url="/another_docs")
 origins = [
@@ -23,7 +24,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 opt = Namespace(answer_maxlength=-1,
                 checkpoint_dir='../checkpoint',
@@ -151,18 +151,25 @@ dummy_ctxs = [
     }
 ]
 
+
 @app.post("/predict/")
 async def predict(request: RequestBody):
     if request.is_test:
         response = ResponseBody(ticket_body=request.ticket_body, context=dummy_ctxs,
-                                 confidence_score=0.1)
+                                confidence_score=0.1)
     else:
-        ctxs = search(ticket_subject=request.ticket_subject, ticket_body=request.ticket_body)
-        question = f"{request.username} </s> {request.ticket_subject} {request.ticket_body}"
+        ticket_results, kas_results = search_es(ticket_subject=request.ticket_subject,
+                                                ticket_body=request.ticket_body)
+        ctxs = format_ticket_and_kas_into_ctxs(ticket_results, kas_results)
+        question = f"{request.username.strip()} </s> {request.ticket_subject.strip()} " \
+                   f"{request.ticket_body.strip()}"
 
         input_example = construct_example(question, ctxs)
-        inferred_resp, scores = inference(input_example, opt, model=model)
+        inferred_resp, scores = inference([input_example], opt, model=model)
 
-        response = ResponseBody(ticket_body=inferred_resp[0], context=ctxs, confidence_score=scores[0])
+        print(inferred_resp[0])
+        trimmed_response = trim_response(inferred_resp[0])
+        response = ResponseBody(ticket_body=trimmed_response, context=ctxs,
+                                confidence_score=scores[0])
 
     return response
