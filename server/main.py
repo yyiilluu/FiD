@@ -33,7 +33,7 @@ opt = Namespace(answer_maxlength=-1,
                 local_rank=-1,
                 main_port=-1,
                 maxload=-1,
-                model_path='../checkpoint/base_exp_4epochs_v2/checkpoint/last',
+                model_path='../checkpoint/base_exp_2epochs_v3/checkpoint/last',
                 model_size='base', n_context=10,
                 name='eval_test',
                 no_title=False,
@@ -160,7 +160,7 @@ async def predict(request: RequestBody):
     else:
         ticket_results, kas_results = search_es(ticket_subject=request.ticket_subject,
                                                 ticket_body=request.ticket_body)
-        ctxs = format_ticket_and_kas_into_ctxs(ticket_results, kas_results)
+        ctxs = format_ticket_and_kas_into_ctxs(ticket_results, kas_results, 3)
         question = f"{request.username.strip()} </s> {request.ticket_subject.strip()} " \
                    f"{request.ticket_body.strip()}"
 

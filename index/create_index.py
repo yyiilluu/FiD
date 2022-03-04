@@ -2,13 +2,14 @@ import json
 from typing import Dict, List
 
 from elasticsearch import Elasticsearch
+from tqdm import tqdm
 
 
 def index(index_ticket: bool, index_kas: bool):
     es = Elasticsearch("http://localhost:9200")
 
     if index_ticket:
-        ticket_index_name = "tickets"
+        ticket_index_name = "tickets_1x"
 
         # load data
         with open("index_data/index_tickets_traindata.json", "r") as f:
@@ -17,7 +18,7 @@ def index(index_ticket: bool, index_kas: bool):
         # index tickets
         if not es.indices.exists(index=ticket_index_name):
             es.indices.create(index=ticket_index_name)
-        for elem in tickets_and_responses:
+        for elem in tqdm(tickets_and_responses):
             es.index(index=ticket_index_name, body=elem)
 
     if index_kas:
@@ -27,7 +28,7 @@ def index(index_ticket: bool, index_kas: bool):
             kas = json.load(f)
         if not es.indices.exists(index=kas_index_name):
             es.indices.create(index=kas_index_name)
-        for elem in kas:
+        for elem in tqdm(kas):
             ka_body = elem["paragraph"]
             ka_title = elem["document_title"]
             ka_id = elem["id"]
@@ -40,4 +41,4 @@ def index(index_ticket: bool, index_kas: bool):
 
 
 if __name__ == '__main__':
-    index(index_ticket=False, index_kas=True)
+    index(index_ticket=True, index_kas=False)

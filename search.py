@@ -22,7 +22,7 @@ def search_es(ticket_subject, ticket_body) -> (List[Dict[str, str]], List[Dict[s
             }}]
         }
     }
-    ticket_results = es.search(index="tickets", body={"query": ticket_query, "from": 0, "size":1})
+    ticket_results = es.search(index="tickets", body={"query": ticket_query, "from": 0, "size":3})
     print(ticket_results['hits'])
 
     kas_query = {
@@ -38,19 +38,20 @@ def search_es(ticket_subject, ticket_body) -> (List[Dict[str, str]], List[Dict[s
         }
     }
     kas_results = es.search(index="knowledge_articles", body={"query": kas_query, "from": 0,
-                                                            "size":10})
+                                                            "size":5})
     return ticket_results, kas_results
 
 
-def format_ticket_and_kas_into_ctxs(ticket_results, kas_results):
+def format_ticket_and_kas_into_ctxs(ticket_results, kas_results, ticket_k=1):
     ctxs = []
-    ticket_source = ticket_results['hits']['hits'][0]['_source']
-    ctxs.append({
-        "title": ticket_source['question_title'],
-        "text": ticket_source['answer'],
-        "id": ticket_source['id'],
-        "score": 1,
-    })
+    ticket_sources = [ t['_source'] for t in ticket_results['hits']['hits'][:ticket_k]]
+    for ticket_source in ticket_sources:
+        ctxs.append({
+            "title": ticket_source['question_title'],
+            "text": ticket_source['answer'],
+            "id": ticket_source['id'],
+            "score": 1,
+        })
 
     for kas_hit in kas_results['hits']['hits']:
         kas_source = kas_hit['_source']

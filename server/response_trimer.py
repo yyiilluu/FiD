@@ -14,6 +14,11 @@ def trim_response(response: str):
 
     final_sent_texts = [sent.text.strip() for sent in doc.sents]
     last_sent = final_sent_texts[-1]
+
+    last_index = final_sent_texts.index(last_sent)
+    final_sent_texts = final_sent_texts[:last_index+1]
+    last_sent = final_sent_texts[-1]
+
     word_length = len(last_sent.split())
     if word_length <= 4:
         return " ".join(final_sent_texts[:-1])
